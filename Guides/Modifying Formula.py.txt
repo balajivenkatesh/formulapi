@@ -1,0 +1,39 @@
+[General]
+We generally expect that most teams will not have any need to alter "Formula.py" itself.
+
+The "Formula.py" script is responsible for:
+* Managing the threads which do the image processing.
+* Managing the threads used for camera handling and motor control.
+* Loading "Race.py" into a thread with the Race Code Functions available.
+* Setting up the camera.
+* Display of diagnostic images.
+* Reloading "Settings.py" automatically if it is changed while running.
+* Talking to the ZeroBorg for setting the real motor speeds and the LED.
+* Cleaning up everything when the race is finished.
+
+Typically these jobs are necessary to make everything work, but they will not really effect the performance of the YetiBorg when racing.
+
+[Restructuring]
+If you are doing major restructuring of "ImageProcessor.py" or the scripts as a whole you may need to make changes to the thread management.
+This is especially true if you are adding or removing threads compared to the standard example.
+
+You may restructure the code however you like but:
+* Our standard SD card image will start a script saved as "/home/pi/formulapi/Formula.py" - it must exist to be started.
+* Your code must automatically start without user intervention.
+* It must wait for the lights before starting the race.
+* You need to turn on the LED when you see the first green light so the stewards can verify the YetiBorg is ready to race.
+* If you need to install any programs / Python modules which are not part of the standard SD card image you will need to send us an SD card by mail.
+
+[Other languages]
+You may use a different programming language if you wish but:
+* If you to install any programs / modules which are not part of the standard SD card image you will need to send us an SD card by mail.
+* If uploading via FTP the entire program must be contained in the "/home/pi/formulapi" directory.
+* Our standard SD card image will start a script saved as "/home/pi/formulapi/Formula.py" - it must exist to be started.
+
+[Simulations]
+One reason you may wish to modify "Formula.py" is to perform simulations.
+Our Provided "Simulation*.py" scripts are in fact altered versions of "Formula.py".
+
+The reason this is possible is that the function which control the output (YetiLed and YetiMotors) are in "Formula.py".
+You can also replace the incoming images with a modified version of the ImageCapture class (see "SimulationFull.py") or by using manual image loading in the main code (see "SimulationImages.py").
+

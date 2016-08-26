@@ -1,0 +1,118 @@
+At the moment there are two provided simulation scripts:
+* "SimulationImages.py" - Useful for testing changes to the image processing using a directory of images
+* "SimulationFull.py" - Useful for testing race behaviour, connects to the simulator written by computernerd486
+
+The simulation scripts are effectively replacements for "Formula.py".
+They work with the same scripts and settings as normal with some minor differences:
+* They will run on a Raspberry Pi that does not have a ZeroBorg attached.
+  * They may run on other computers as well, but we recommend testing with a Raspberry Pi for accuracy.
+* The outputs for the motors and the LED are sent somewhere else, such as to the screen.
+* They use an input other than the camera for the video feed.
+* Some of the standard settings are overridden to allow for slight behaviour changes.
+
+Below is an explanation of general debugging settings and each simulator in more detail.
+For further help with the simulations please ask on the forum:
+http://www.formulapi.com/forum
+
+[General debugging settings]
+These settings are useful for altering the output for debugging.
+They are available in "Formula.py" as well, but we recommend sticking with the defaults as most of these options 
+Most of these settings take effect every "Settings.fpsInterval" frames to prevent overloading the processor.
+The default setting for this works out at once per second.
+
+ImageProcessor.filePattern
+* When using the writeImages or writeRawImages option this is where the files will be saved to.
+* The format string should at a minimum include '%d' for the image number and '%s' for the description in that order.
+* The file extension used determines the file type saved, e.g. '.jpg' saves a JPEG image.
+* Default value in FormulaPi = './test-%05d-%s.jpg'
+
+ImageProcessor.writeRawImages
+* When True the incoming images to "StreamProcessor.ProcessImage" are saved.
+* Default value in FormulaPi = False
+
+ImageProcessor.writeImages
+* When True writes any displayed images to file as well, most effective with "ImageProcessor.debugImages" set to True.
+* Default value in FormulaPi = False
+
+ImageProcessor.debugImages
+* When True images are shown for various stages during the image processing, useful for debugging of the processing stages.
+* This setting is very taxing on the processor, it typically causes the processing to run very slowly on a Pi Zero.
+* Default value in FormulaPi = False
+
+ImageProcessor.showProcessing
+* When True the final points image is shown to the user.
+* Default value in FormulaPi = False
+
+ImageProcessor.showFps
+* When True the measured FPS of the processing is printed to the screen at regular intervals.
+* This value should be approximately the same as "Settings.frameRate" if the processing is keeping up.
+* When using "SimulationImages.py" this value is typically inaccurate.
+* Default value in FormulaPi = True
+
+ImageProcessor.showUnknownPoints
+* When True unidentified points are plotted as well, not just matched lane points.
+* This only matters if "ImageProcessor.showProcessing" is True.
+* Default value in FormulaPi = False
+
+ImageProcessor.predatorView
+* When True the red / green / blue / wall heat map will be displayed.
+* This is a good way of quickly checking the colour tuning of the image processing.
+* Default value in FormulaPi = False
+
+ImageProcessor.scaleFinalImage
+* When any value other than 1.0 the points view and heat map view will be resized by this value.
+* Default value in FormulaPi = 1.0
+
+ImageProcessor.scaleDebugImage
+* When any value other than 1.0 any views not sized by "ImageProcessor.scaleFinalImage" will be resized by this value.
+* Default value in FormulaPi = 1.0
+
+ImageProcessor.dPlotY
+* Sets how much height is used for the track angle line on the points view.
+* This only matters if "ImageProcessor.showProcessing" is True.
+* Positive values will draw up the image, negative values down the image.
+* Default value in FormulaPi = -10
+
+[SimulationImages.py]
+This simulation is best suited towards checking the image processing.
+It allows real images to be put through the whole system to see how the image processing behaves.
+It typically runs slower than the real processing to allow diagnostic output to be generated.
+
+There are two possible modes:
+1. Pass a single image through the processing
+2. Run through a directory of ".jpg" images for the camera input
+
+The main simulation parameters towards the top of the file are:
+* autoRun - True will use mode 2 (directory of images), False will use mode 1.
+* fileIn - The file to use as input when in mode 1.
+* autoPath - The directory to scan for images when in mode 2.
+* autoDelay - The time in milliseconds to wait between images in mode 2, use 0 to wait for a key press.
+
+This simulation overrides the "Settings.fpsInterval" value to 1 so that detailed output images are generated every frame instead of the default of once per second.
+Motor speeds and LED values are printed to the screen.
+
+[SimulationFull.py]
+This simulation is best suited for testing the overall race logic and movement of the YetiBorg.
+It connects to the simulator written by computernerd486 to provide a testing setup without a YetiBorg or track.
+Performance varies depending on a few factors, ideally it will work just as well as the real running code with a good network connection.
+We recommend running the simulator itself on another computer connected via a network.
+
+There are two basic modes for this simuation:
+1. Frame limited to represent how the real camera frame rate will be.
+2. As fast as possible to allow for processing speed testing.
+
+The main simulation parameters towards the top of the file are:
+* simulationIP - The address of the machine running the simulator itself.
+* simulationPort - The port number used by the simulator.
+* frameLimiter - True will use mode 1 (camera frame rate maximum), False will use mode 2 (as fast as possible).
+
+This simulation currently overrides these values:
+* "Settings.steeringGain" is overridden to "Settings.simulationSteeringGain".
+  This allows us to simulate the turning circle of the YetiBorg for now.
+  Bear this in mind if you are writing your own steering logic.
+* "Settings.yetiSpeed" is overridden to "Settings.simulationYetiSpeed".
+  This is because the simulation movement speed is lower than reality.
+  This change corrects the waypoint calculations to reflect this.
+
+Motor speeds and LED values are passed back to the simulator when updated.
+They are also printed on screen for diagnostics.

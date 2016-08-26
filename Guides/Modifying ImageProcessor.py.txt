@@ -1,0 +1,121 @@
+[Before starting]
+Modifying the "ImageProcessor.py" script is typically for more advanced teams with more programming experience.
+
+Before you make any changes we would recommend looking at the following:
+* Our posts on how most of the processing works: http://www.formulapi.com/taxonomy/term/9
+* The OpenCV tutorials if you are not familiar with OpenCV: http://docs.opencv.org/2.4/doc/tutorials/tutorials.html
+* Try running the standard code as-is to see what it already does.
+  * You can turn on processing output images using the "Image processing debugging settings" section of "Formula.py" or the various "Simulation*.py" scripts depending on how the processing is running.
+
+[Basic structure]
+Inside "ImageProcessor.py" there are several parts responsible for different things:
+* class ImageCapture: Manages the camera object and passes new frames to a free StreamProcessor instance.
+* class StreamProcessor: Takes a raw camera frame and performs the entire image processing.
+* class ControlLoop: Takes the output from the image processing and generates the desired motor speeds.
+* Bits not in a class: A mixture of constants, settings, and helper functions.
+
+[Simple tweaking]
+If all you wish to do is make adjustments to the way the image processing works, you should probably start with "Settings.py" first.
+The majority of these settings control exactly how the processing and control threads make their decisions.
+The "Settings.py" file has detailed comments on the settings themselves, we would suggest reading through that script to get an idea how much control is provided.
+
+[Areas for improvement]
+There are some good candidates for improving the actual image processing that will be worth looking at first:
+* Processing speed - From our testing anything which improves the frame rate of the processing makes the YetiBorg follow the track better.
+* Speed control - At the moment the speed is entirely controlled by the code in "Race.py", it does not use the camera data at all.
+* Overtaking and traffic detection - The algorithm here is fairly crude, a more precise detection or overtaking logic will likely give better results.
+* Harsh track angles - The current point sweeping logic works badly as the track approaches a 90 degree angle from the YetiBorg, this is particularly obvious on the S curve.
+* Track mapping - The code relies completely on the image processing, it could be improved if it has some kind of map to decide where it is roughly on the track.
+
+[Breakdown of class ImageCapture]
+This is a fairly simple thread which has only it's main run function.
+It works using an already initialised cv2.VideoCapture object stored in Globals.capture.
+When a new frame is ready it is given to the first thread which is ready to accept a new frame.
+It uses a pool of available processing threads (usually only one on the Pi Zero) to decide which threads are available.
+The StreamProcessor threads are responsible for returning to the pool when they are ready to accept a new frame.
+There is only one of these threads running.
+The initialisation will automatically start the thread.
+
+[Breakdown of class StreamProcessor]
+This thread is where the bulk of the processing happens.
+It is intended to allow multiple copies to run at the same time:
+* On a Pi Zero we suggest only running one copy.
+* On a Pi 2 or 3 we suggest running four copies, one per core.
+The initialisation will automatically start the thread unless told not to.
+
+StreamProcessor.run - Waits for a new frame event, ends when the terminated flag is set to True.
+
+StreamProcessor.ShowImage - Simple function to scale and display images, used for debugging only.
+
+StreamProcessor.DrawCross - Draws a small cross on an image, used when generating the processing display.
+
+StreamProcessor.DrawPoints - Wrapper around StreamProcessor.DrawCross to draw a list of points.
+
+StreamProcessor.SweepLine - Used to scan a horizontal line in an image, returns lists of rising and falling positions.
+
+StreamProcessor.EliminateMatches - Used to remove similar values from up to two lists given a target list to match.
+
+StreamProcessor.FindMatches - Used to generate lists of matching points from up to three lists given a target list to match.
+
+StreamProcessor.ProcessImage - Performs the bulk on the image processing.
+Responsible for:
+* Any override mode which affects the image processing.
+* Detecting light changes.
+* Checking if the YetiBorg has flipped over.
+* Testing if the YetiBorg is stuck.
+* Spotting the start line and maintaining the lap counter from it.
+* Finding the lanes from the image.
+* Detecting the YetiBorg is driving the wrong way.
+* Reducing the lanes to a set of points for analysis.
+* Drawing most of the debugging displays if enabled.
+
+StreamProcessor.SetSpeedFromLines - Takes a set of points and determines where the YetiBorg is on the track.
+Responsible for:
+* Deciding which line(s) to make decisions based on.
+* Handling situations where there is not enough data to process.
+* Calculating the offset from the chosen lane (usually the closest).
+* Calculating the angle the YetiBorg is facing compared to the track.
+* Calculating how much the track is bending around a corner.
+* Drawing the final processing display if enabled.
+* Setting an event for the ControlLoop thread to update motor speeds from the data.
+
+[Breakdown of class ControlLoop]
+This thread takes inputs from both the user code (in Race.py) and the image processing to determine the speeds to apply to the motors.
+It uses PID loops on the various output date from StreamProcessor.SetSpeedFromLines to combine the readings into a single control signal.
+The output from this control signal is put though a simple FIR filter to prevent sudden motor changes due to noise.
+The override modes which affect the final motor output are handled here.
+Finally the distance travelled around the current lap is calculated in this thread.
+The initialisation will automatically start the thread unless told not to.
+
+ControlLoop.run - Waits for an updated set of data from the image processing, ends when the terminated flag is set to True.
+
+ControlLoop.Reset / __Reset__ - Sets the initial state of all the various filters and overrides, also disables the motors.
+
+ControlLoop.SetDrive - Takes a speed and steering pair of levels and determines the appropriate speeds of the left and right motors.
+It passes these speeds to Globals.YetiMotors to perform the change.
+Also calls ControlLoop.IncreaseDistance to calculate the distance travelled since the last speed setting.
+
+ControlLoop.IncreaseDistance - Uses the previously set speed and steering along with the last and current offsets to determine how far the YetiBorg moved since the last call.
+
+ControlLoop.FirFilter - Performs a basic averaging of the last few speed and steering values before passing them to ControlLoop.SetDrive.
+
+ControlLoop.PerformOverrides - Handles both detection and operation of override modes which involve the motor output or the point data.
+This is called in ControlLoop.FirFilter before passing the filtered results to ControlLoop.SetDrive so that the overrides do not have an effect on the filtering.
+
+ControlLoop.RunLoop - This performs a PID loop for each of the data outputs from the image processing.
+The track offset loop works with the summed values of:
+* The offset from the lane itself
+* Adding lane offset for the lane we have computed from
+* Subtracting the current user target lane (from Race.py)
+* Subtracting its own automatic lane offset, used by the overtaking override
+The track angle loop works directly from the gradient rather than a computed angle.
+The track curvature loop works directly from the computed second-order gradient, the default example does not use this data.
+All of the PID coefficients can be found in "Settings.py".
+The final steering value is based on the sum of all three PID loop outputs.
+The final speed is either off or the user set speed depending on the results from StreamProcessor.SetSpeedFromLines
+
+[Making major changes]
+If you are restructuring the code significantly there are a few things you will need to bear in mind.
+* The threads are managed by "Formula.py", so any changes to the threading may need changes here
+* The threads pass data between themselves and may look at values from other threads.
+* Values used / written to the Globals module are used by multiple scripts.

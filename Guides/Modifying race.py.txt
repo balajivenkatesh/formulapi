@@ -1,0 +1,92 @@
+[The standard example]
+The standard "Race.py" provided is quite boring.
+All it does is:
+1. Start logging what is happening
+2. Wait for the lights
+3. Wait until the 23 laps have been completed
+4. Wait a few seconds to be sure we made it
+5. Stop the logging
+6. End the script
+
+If you run with the standard code as-is then "Race.py" will do enough to complete the race.
+What it lacks is any kind of intelligent decisions around the track.
+
+[How can it be improved]
+There are a whole load of functions this example does not yet use.
+They can all be found here: http://www.formulapi.com/race-code/functions
+
+We have some more detailed examples in the "RacePy samples" directory.
+
+Probably the most important addition is changing the position we drive at around the track.
+If you look at the "SimpleLap.py" lap example you can see how you can tell the processing where to try and drive.
+The waypoint numbers for track #1 can be found here: http://www.formulapi.com/track-1/layout
+
+In "SimpleLap.py" we have only included the bare bones:
+* No logging
+* No logic based on the starting lane
+* Does not wait after the final start line to be safe
+* No special treatment for the very first corner of the race
+
+We have a slightly more complete example in "BetterLap.py".
+The basic strategy is the same, but there are more things going on now.
+
+The differences are:
+* The new version uses the logging
+* It checks the starting lane when powered on
+* There is code for the first straight and corner, allowing them to be different
+* We have a short duration of aiming for the track center after waypoint 7 to prevent the YetiBorg steering too hard
+* We now have a short delay after the final start / finish crossing like the standard example to be sure we completed the lap
+
+We also have a fairly detailed example, "DetailedLap.py".
+This example makes a lot of changes an demonstrates how powerful these functions can be:
+* We wait until the processing can see the track instead of just waiting for two seconds at the start
+* We take a photo at the starting line :)
+* We are now using the Speed function to slow the YetiBorg down at certain points of the track
+* We use a log more of the waypoints to get finer control
+* We take a photo when we have crossed the finish line :)
+* Instead of continuing to race at full speed for a few seconds we gradually slow down over roughly a second.
+
+[What if I want more detailed positioning]
+The provided samples do not use all of the functions available.
+There are two basic alternatives to the waypoints.
+
+Using WaitForDistance will allow you to specify a distance around the lap.
+This can then be used for making changes between waypoints anywhere along the track.
+The distance is based on how far the YetiBorg would have travelled if it was driving perfectly on the center lane.
+
+Using GetDistance will allow you to actually read the distance travelled and use it directly.
+This is useful if you wish to fine-tune delays or write a mathematical function to control the position.
+Be aware there are times the YetiBorg can have the distance reduced, such as reversing after a crash.
+
+For those who wish to use what the camera can see to help as well there are results from the camera processing code.
+A detailed explanation of what is measured and the values returned can be found here:
+http://www.formulapi.com/race-api/processing-results
+
+[What if I want to do some image processing]
+You can do additional image processing in "Race.py" if you would like.
+To start with you can get the latest recorded camera frame from the GetLatestImage function.
+
+There are also calls available to do the same processing the standard code does in chunks.
+These mimic the standard processing so that they run independently.
+There is a complete example of building the standard processing from these calls in "Run image processing.py"
+
+[Things to be aware of]
+The main script, "Formula.py" will look for and run a script called "Race.py" in the same directory.
+* If this script is missing the standard code will never go into waiting for lights, so nothing will happen.
+* Your code should replace the standard "Race.py" example.
+
+The standard code is set to ignore the position set by "Race.py" and the camera feed for the initial dash to the first corner.
+* This can be disabled by changing firstStraightOverride in "Settings.py" to False.
+* When enabled it is best to aim for the current lane at the start to prevent a sudden position change when the initial dash finishes.
+
+Sudden large changes to the target lane tend to cause the YetiBorg to crash into a wall.
+* Stepping via a halfway position for around a second when the change is two or more lanes seems to work reliably.
+* Gradually changing the position over time is better, but requires more complex code.
+
+You are sharing the Raspberry Pi's processing time with the image processing code
+* The processing uses around 70% of the processor on a Raspberry Pi Zero to maintain the standard 5 frames per second processing rate.
+* If the processing cannot keep up with the camera then the YetiBorg movement may become sluggish or unreliable.
+* Be careful if doing your own processing in "Race.py", it is easy to use a lot of processing time.
+* Make sure your code calls one of the WaitFor* functions or time.sleep regularly to help ensure the processing runs at the correct rate.
+
+If you want more control over the processing take a look at "Modifying ImageProcessor.py.txt" for more details.

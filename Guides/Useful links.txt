@@ -1,0 +1,22 @@
+[Important information]
+* Dates: http://www.formulapi.com/dates
+* Rules: http://www.formulapi.com/rules
+* Layout for track #1: http://www.formulapi.com/track-1/layout
+* Our forum for questions about rules: http://www.formulapi.com/forum/2
+
+[Formula Pi scripting]
+* Breakdown of the script files in the standard example: http://www.formulapi.com/race-code
+* List of Race Code Functions for Race.py: http://www.formulapi.com/race-code/functions
+* Detailed explanation of the results from the processing: http://www.formulapi.com/race-api/processing-results
+* List of the processing modes we use: http://www.formulapi.com/race-code/processing-states
+* Our help forum: http://www.formulapi.com/forum/7
+
+[Modifying the image processing]
+* Our posts relating to image processing: http://www.formulapi.com/taxonomy/term/9
+* OpenCV documentation: http://docs.opencv.org/2.4.13/
+* OpenCV tutorials: http://docs.opencv.org/2.4/doc/tutorials/tutorials.html
+* OpenCV help forum: http://answers.opencv.org/questions/
+
+[Other information]
+* Getting our code to run on Windows (for testing): http://www.formulapi.com/node/23
+* General help, see our forum: http://www.formulapi.com/forum

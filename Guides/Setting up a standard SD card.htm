@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<body>
+Please note that most of the installation steps will expect the Raspberry Pi to be connected to the internet.
+On a Raspberry Pi Zero this will probably need a USB hub and a WiFi / Ethernet dongle.
+
+<h2>Basic Raspbian image</h2>
+The standard image is based on the offical version of Raspbian.
+We have tested using the 18th of March 2016 version: http://downloads.raspberrypi.org/raspbian/images/raspbian-2016-03-18/
+We recommend following the install guide <a href="https://www.raspberrypi.org/documentation/installation/installing-images/README.md">here</a>.
+
+We also recommend expanding the filesystem using <code>raspi-config</code>:
+<ol>
+    <li>Enter the following command in a terminal: <code>sudo raspi-config</code></li>
+    <li>Move down to option <code>1 Expand Filesystem</code> and press <kbd>ENTER</kbd></li>
+    <li>Move right until <code>Finish</code> is highlighted, then press <kbd>ENTER</kbd></li>
+</ol>
+
+<h2>Installing the ZeroBorg</h2>
+First enable I2C using <code>raspi-config</code>:
+<ol>
+    <li>Enter the following command in a terminal: <code>sudo raspi-config</code></li>
+    <li>Move down to option <code>8 Advanced Options</code> and press <kbd>ENTER</kbd></li>
+    <li>Move down to option <code>A7 I2C</code> and press <kbd>ENTER</kbd></li>
+    <li>Make sure <code>Yes</code> is highlighted and press <kbd>ENTER</kbd></li>
+    <li>When the dialog says I2C is enabled press <kbd>ENTER</kbd></li>
+    <li>Make sure <code>Yes</code> is highlighted again and press <kbd>ENTER</kbd></li>
+    <li>When the dialog says I2C will be loaded by default press <kbd>ENTER</kbd></li>
+    <li>Move right until <code>Finish</code> is highlighted, then press <kbd>ENTER</kbd></li>
+</ol>
+If the I2C option is not available simply proceed to the next step.<br />
+<br />
+To run through the automatic installer just use this one line in a terminal:<br />
+<pre class="brush: bash">
+bash &lt;(curl https://www.piborg.org/install-zeroborg.txt)
+</pre>
+If you would prefer to manually run through the steps use the commands below:<br />
+<pre class="brush: bash">
+mkdir ~/zeroborg
+cd ~/zeroborg
+wget http://www.piborg.org/downloads/zeroborg/examples.zip
+unzip examples.zip
+chmod +x install.sh
+./install.sh
+</pre>
+
+<h2>Setting up the camera</h2>
+After powering the Raspberry Pi you want to enable the camera functionality:<br />
+<ol>
+ <li>Enter the following command in a terminal: <code>sudo raspi-config</code></li>
+ <li>Move down to option <code>5 Enable camera</code> and press <kbd>ENTER</kbd></li>
+ <li>Make right until <code>Enable</code> is highlighted and press <kbd>ENTER</kbd></li>
+ <li>Move right until <code>Finish</code> is highlighted, then press <kbd>ENTER</kbd></li>
+ <li>If asked if you would like to reboot, make sure <code>Yes</code> is highlighted, then press <kbd>ENTER</kbd></li>
+ <li>Wait for the Raspberry Pi to restart</li>
+</ol>
+You can check the Raspberry Pi camera is attached and working by using the following command:<br />
+<pre class="brush: bash">
+raspistill -d
+</pre>
+If the camera is working you should see the image from the camera on the monitor for a few seconds.<br />
+If it is not working or incorrectly connected you will get error messages instead.<br />
+<br />
+Next we want to install the Python library for talking to the camera:<br />
+<pre class="brush: bash">
+sudo apt-get -y install python-picamera
+</pre>
+<br />
+As we want to do image processing we want the OpenCV libraries as well.<br />
+This download is a bit larger and may take a while:<br />
+<pre class="brush: bash">
+sudo apt-get -y install libcv-dev libopencv-dev python-opencv
+</pre>
+
+<h2>Final notes</h2>
+We will download and unzip your code into the <code>/home/pi/formulapi</code> directory.
+We will add this line into <code>rc.local</code> to start the code:
+<pre class="brush: bash">
+sudo /home/pi/formulapi/Formula.py &amp;
+</pre>
+
+This means you will need a script called <code>Formula.py</code> the starting part of your code.
+This will be how our standard example works, with <code>Formula.py</code> loading all of the other scripts.
+
+If you wish to use a language other than Python you may, but it must be started from the command in <code>rc.local</code> listed above.
+If your code will not run on our standard image you will need to provide a pre-setup micro SD card which will work with the Raspberry Pi Zero and will start up into a waiting for lights state on its own.
+</body>
+</html>
+
+
