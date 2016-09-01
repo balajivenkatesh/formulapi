@@ -14,7 +14,7 @@ frameTimes = []
 lastFrameStamp = 0
 trackFound = False
 lastLines = []
-lapCount = 0			#TODO: fill in from processing code
+lapCount = 0
 lapTravelled = 0.0
 
 # Defaults for values set from the Race Code Functions
