@@ -21,7 +21,12 @@ Probably the most important addition is changing the position we drive at around
 If you look at the "SimpleLap.py" lap example you can see how you can tell the processing where to try and drive.
 The waypoint numbers for track #1 can be found here: http://www.formulapi.com/track-1/layout
 
-In "SimpleLap.py" we have only included the bare bones:
+There is a "BareMinimum.py" which is enough to run the standard code without changes:
+* No logging
+* No changes to lane at any point - always aims for the center of the track
+* Does not stop, it will run until the battery gets flat!
+
+In "SimpleLap.py" we have only included the most basic of race plans:
 * No logging
 * No logic based on the starting lane
 * Does not wait after the final start line to be safe

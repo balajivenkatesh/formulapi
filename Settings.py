@@ -22,7 +22,7 @@ firstStraightOverride = True		# If True we will use FIRST_STRAIGHT mode after th
 									# This will move straight ahead for the intervals below
 									# If False we will go to FOLLOW_TRACK directly instead
 firstStraightMin = 2.0				# Minimum number of seconds straight forward
-firstStraightMax = 5.0				# Maximum number of seconds straight forward
+firstStraightMax = 4.0				# Maximum number of seconds straight forward
 
 #######################################################################################
 # These settings define the layout of the track and are used for working out how far  #
@@ -32,9 +32,12 @@ firstStraightMax = 5.0				# Maximum number of seconds straight forward
 # YetiBorg movement details
 yetiSpeed = 1.15					# Speed the YetiBorg moves at with 100% power in m/s
 yetiSpeedFullSteering = 0.0			# Speed the YetiBorg moves at with 100% steering in m/s
+
+# Adjustments used for the simulation
 simulationDrivePower = 1.0			# Speed multiplier for the simulation mode
-simulationSteeringGain = 0.63		# Override for the steering gain in simulation mode
-simulationYetiSpeed = 0.6			# Override for the YetiBorg speed in simulation mode
+simulationSteeringGain = 0.50		# Override for the steering gain in simulation mode
+simulationYetiSpeed = 0.78			# Override for the YetiBorg speed in simulation mode (used for distance calculations)
+simulationLagFrames = 1				# Number of frames to delay the processing by to simulate camera lag
 
 # Track dimensions
 trackLengthCenter = 22.9			# Length of the center line in meters
@@ -66,10 +69,9 @@ waitForNextLapAfter = 1.0			# If we are more than this many meters ahead of the 
 #######################################################################################
 
 # Power settings
-voltageIn  = 8.4					# Total battery voltage to the PicoBorg Reverse
-voltageOut = 8.2					# Maximum drive motor voltage
-#voltageOut = 5.0					# Maximum drive motor voltage
-#voltageOut = 0.0					# Maximum drive motor voltage
+maxPower = 1.0						# Maximum of allowed drive output (1.0 is 100%)
+maxPower = 0.95						# Maximum of allowed drive output - Approximate calibration level
+#maxPower = 0.0						# Maximum of allowed drive output - Force stationary
 
 # Crop settings
 cropX1 = int(imageWidth  * 0.00)	# Left edge of the image to use
@@ -84,7 +86,15 @@ blackMaxG = 100						# Maximum green level for black detection (0-255)
 blackMaxB = 60						# Maximum blue level for black detection (0-255)
 
 # Image start line identification tuning
-startCrossedSeconds = 0.5			# Number of seconds to wait after the start line vanishes before announcing crossing
+startCrossedSeconds = 0.0			# Number of seconds to wait after the start line is seen before announcing crossing
+startX1 = int(imageWidth  * 0.40)	# Lower X boundary for start line detection
+startX2 = int(imageWidth  * 0.60)	# Upper X boundary for start line detection
+startY  = int(imageHeight * 0.34)	# Y target for start line detection
+startMinR = 80						# Minimum red level in the start detection zone
+startMaxG = 50						# Maximum green level in the start detection zone
+startMaxB = 50						# Maximum blue level in the start detection zone
+startRatioMin = 0.90				# Minimum number of matching pixels per pixel in the detection zone
+startRedetectionSeconds = 10.0		# Number of seconds before we will detect another start marker
 
 # Image colour identification tuning
 targetLevel = 200.0					# Level to auto-tune channels for
@@ -128,7 +138,8 @@ clipI = 100							# Clipping limit for the integrators
 firTaps = 3							# Number of readings (taps) the filter is working over
 
 # Final drive settings
-steeringGain = 2.00					# Steering range correction value
+steeringGain = 2.0					# Steering range correction value
+steeringClip = 0.99					# Maximum steering value
 steeringOffset = 0.0				# Steering centre correction value
 maxBadFrames = frameRate / 2		# Number of poor frames before stopping
 targetTrackPosition = 0.0			# Target position on the track, 0 is the centre
@@ -137,7 +148,7 @@ targetTrackPosition = 0.0			# Target position on the track, 0 is the centre
 stuckIdenticalSeconds = 1.0			# Number of seconds with near identical frames before deciding we are stuck
 stuckIdenticalThreshold = 2.00		# Level at which two frames are seen as identical
 stuckOverrideSeconds = 1.5			# Number of seconds to reverse for when stuck
-stuckHuntSeconds = 0.5				# Number of seconds to hunt for the track after reversing when stuck
+stuckHuntSeconds = 0.8				# Number of seconds to hunt for the track after reversing when stuck
 stuckDetectColourWidth = 0.5		# Position in the image along X to look for the track colour
 stuckDetectColourHeight = 0.9		# Position in the image along Y to look for the track colour
 flipDetectionSeconds = 0.3			# Number of seconds with frames which seem flipped before inverting movement
@@ -151,10 +162,10 @@ overtakeDurationSeconds = 5.0		# Number of seconds to overtake for
 # Traffic light settings
 lightsChangeThreshold = 15.0		# Minimum colour difference to flag as a change in light colour 
 lightsRedGain = 3.0					# Gain term used to make the red and green levels consistent
-lightsX1 = imageWidth * 0.45		# Lower X boundary for light detection
-lightsX2 = imageWidth * 0.55		# Upper X boundary for light detection
-lightsY1 = imageHeight * 0.25		# Lower Y boundary for light detection
-lightsY2 = imageHeight * 0.30		# Upper Y boundary for light detection
+lightsX1 = int(imageWidth  * 0.45)	# Lower X boundary for light detection
+lightsX2 = int(imageWidth  * 0.55)	# Upper X boundary for light detection
+lightsY1 = int(imageHeight * 0.25)	# Lower Y boundary for light detection
+lightsY2 = int(imageHeight * 0.30)	# Upper Y boundary for light detection
 lightsBurnFrames = frameRate * 2	# Number of initial frames where we throw the image away because it is still settling
 
 # Plotting settings
@@ -184,10 +195,10 @@ for position in imagePositions:
 croppedTargetY = (cropY2 - cropY1) * offsetTargetY
 
 # Setup the power limits
-if voltageOut > voltageIn:
+if maxPower > 1.0:
 	maxPower = 1.0
-else:
-	maxPower = voltageOut / float(voltageIn)
+elif maxPower < -1.0:
+	maxPower = -1.0
 
 # Work out times in frame counts
 stuckIdenticalFrames = int(stuckIdenticalSeconds * frameRate)

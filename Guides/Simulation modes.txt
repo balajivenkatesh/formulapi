@@ -113,6 +113,9 @@ This simulation currently overrides these values:
 * "Settings.yetiSpeed" is overridden to "Settings.simulationYetiSpeed".
   This is because the simulation movement speed is lower than reality.
   This change corrects the waypoint calculations to reflect this.
+* "Settings.maxPower" is replaced by "Settings.simulationDrivePower".
+  This allows people to change the running speed in the simulation easily.
+  Useful sometimes, but usually set to 1.0.
 
 Motor speeds and LED values are passed back to the simulator when updated.
 They are also printed on screen for diagnostics.

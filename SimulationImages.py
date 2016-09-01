@@ -87,6 +87,14 @@ def ShowSettings():
 	print 'Corrective gain for derivative: %.3f' % (Settings.gainCorrection)
 	print
 
+	print '[Start marker detection]'
+	print 'Levels: Min Red = %d, Max Green = %d, Max Blue = %d' % (Settings.startMinR, Settings.startMaxG, Settings.startMaxB)
+	print 'Start minimum match ratio: %.1f %%' % (Settings.startRatioMin * 100.0)
+	print 'Start crossed delay %.2f s (%d frames)' % (Settings.startCrossedSeconds, Settings.startCrossedFrames)
+	print 'Start re-detection delay: %.1f s' % (Settings.startRedetectionSeconds)
+	print 'Start detection zone X limits: %d to %d' % (Settings.startX1, Settings.startX2)
+	print 'Start detection zone Y position: %d' % (Settings.startY)
+
 	print '[PID values]'
 	print '    P0: %f	I0:%f	D0: %f' % (Settings.Kp0, Settings.Ki0, Settings.Kd0)
 	print '    P1: %f	I1:%f	D1: %f' % (Settings.Kp1, Settings.Ki1, Settings.Kd1)
@@ -100,7 +108,7 @@ def ShowSettings():
 	print '[Drive settings]'
 	steeringMin = Settings.steeringOffset - Settings.steeringGain
 	steeringMax = Settings.steeringOffset + Settings.steeringGain
-	print '%.1f V of %.1f V (%.1f %%)' % (Settings.voltageOut, Settings.voltageIn, Settings.maxPower * 100.0)
+	print 'Maximum output: %.1f %%' % (Settings.maxPower * 100.0)
 	print 'Steering %+.1f %% to %+.1f %% (central %+.1f %%)' % (steeringMin * 100.0, steeringMax * 100.0, Settings.steeringOffset * 100.0)
 	print 'Missing frames before stopping: %d' % (Settings.maxBadFrames)
 	print

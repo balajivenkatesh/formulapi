@@ -78,7 +78,7 @@ def TimeOnlyStamp():
 	return stamp.strftime('%H:%M:%S.%f')
 
 def LogData(logLevel, logString):
-	logLine = '%s %s()\n' % (TimeOnlyStamp(), logString)
+	logLine = '%s %s\n' % (TimeOnlyStamp(), logString)
 	if logLevel <= Globals.processingPrintLogLevel:
 		print logLine
 	if Globals.processingLogFile:
@@ -94,6 +94,7 @@ class ControlLoop(threading.Thread):
 		self.terminated = False
 		self.eventWait = 2.0 / Settings.frameRate
 		self.userTargetLane = 0.0
+		self.lastStartMarker = time.time()
 		self.Reset()
 		if autoRun:
 			LogData(LOG_CRITICAL, 'Control loop thread started with idle time of %.2fs' % (self.eventWait))
@@ -170,6 +171,10 @@ class ControlLoop(threading.Thread):
 		# Final steering corrections
 		steering *= Settings.steeringGain
 		steering += Settings.steeringOffset
+		if steering < -Settings.steeringClip:
+			steering = -Settings.steeringClip
+		elif steering > Settings.steeringClip:
+			steering = Settings.steeringClip
 		# Determine the individual drive power levels
 		driveLeft  = speed
 		driveRight = speed
@@ -610,6 +615,7 @@ class StreamProcessor(threading.Thread):
 			cv2.imwrite(filePattern % (self.frame, 'raw'), image)
 		# See what mode we are in
 		checkStuck = False
+		checkForStart = False
 		if Globals.imageMode == READY_TO_RACE:
 			# Waiting for commands, process to determine grid position
 			pass
@@ -685,6 +691,7 @@ class StreamProcessor(threading.Thread):
 					SetImageMode(FIRST_STRAIGHT)
 				else:
 					SetImageMode(FOLLOW_TRACK)
+				Globals.controller.lastStartMarker = time.time()
 			else:
 				LogData(LOG_CRITICAL, '! BAD LIGHTS STATE !')
 				Globals.startLights = READY_OFF
@@ -692,6 +699,7 @@ class StreamProcessor(threading.Thread):
 		elif Globals.imageMode == FOLLOW_TRACK:
 			# Normal driving, proceed to standard code
 			checkStuck = True
+			checkForStart = True
 		elif Globals.imageMode == CRASHED:
 			# Crash detected, keep processing normally as this is handled in the control loop
 			if Globals.lastImageMode == FLIPPED:
@@ -700,6 +708,7 @@ class StreamProcessor(threading.Thread):
 		elif Globals.imageMode == FLIPPED:
 			# Flipped over, invert camera
 			checkStuck = True
+			checkForStart = True
 			image = cv2.flip(image, -1)
 		elif Globals.imageMode == WRONG_WAY:
 			# Driving the wrong way, keep processing normally as this is handled in the control loop
@@ -713,6 +722,7 @@ class StreamProcessor(threading.Thread):
 			return
 		elif Globals.imageMode == FIRST_STRAIGHT:
 			# First straight dash, keep processing normally as this is handled in the control loop
+			# We do not want to check for the start line here, it may confuse things!
 			pass
 		else:
 			# Unexpected mode!!!
@@ -793,27 +803,53 @@ class StreamProcessor(threading.Thread):
 			self.ShowImage('black', black)
 		if saveAll:
 			cv2.imwrite(filePattern % (self.frame, 'black'), black)
-		# TODO: Start line detection logic
-		startDetected = False
-		# Start line testing logic
-		if Globals.startWaitCount > 0:
-			# Countdown to announcement
-			Globals.startWaitCount -= 1
-			if Globals.startWaitCount <= 0:
-				# Crossed line
-				LogData(LOG_MAJOR, '--- START-LINE CROSSED ---')
-				Globals.lapTravelled = 0.0
-				Globals.lapCount += 1
-				Globals.seenStart = False
-		elif Globals.seenStart:
-			# We have seen the start line, wait for it to move out of sight
-			if not startDetected:
-				Globals.startWaitCount = Settings.startCrossedFrames
+		# Grab the section of the image used for the start line
+		lineR = image[Settings.startY, Settings.startX1 : Settings.startX2, 2]
+		lineG = image[Settings.startY, Settings.startX1 : Settings.startX2, 1]
+		lineB = image[Settings.startY, Settings.startX1 : Settings.startX2, 0]
+		# Check each pixel for a start marker colour match
+		matchR = lineR > Settings.startMinR
+		matchG = lineG < Settings.startMaxG
+		matchB = lineB < Settings.startMaxB
+		match = numpy.logical_and(numpy.logical_and(matchR, matchG), matchB)
+		matchRatio = numpy.count_nonzero(match) / float(len(match))
+		if matchRatio >= Settings.startRatioMin:
+			startDetected = True
 		else:
-			# We are still waiting to see the start line
-			if startDetected:
-				LogData(LOG_MAJOR, '--- START-LINE DETECTED ---')
-				Globals.seenStart = True
+			startDetected = False
+		if checkForStart:
+			# Start line testing logic
+			if Globals.startWaitCount > 0:
+				# Countdown to announcement
+				Globals.startWaitCount -= 1
+				if Globals.startWaitCount <= 0:
+					# Crossed line
+					LogData(LOG_MAJOR, '--- START-LINE CROSSED ---')
+					Globals.lapTravelled = 0.0
+					Globals.lapCount += 1
+			elif Globals.seenStart:
+				# We have seen the start line, wait for it to move out of sight
+				if not startDetected:
+					LogData(LOG_MAJOR, '--- START-LINE OUT OF SIGHT ---')
+					Globals.seenStart = False
+			else:
+				# We are still waiting to see the start line
+				if startDetected:
+					detectionTime = time.time()
+					if (detectionTime - Globals.controller.lastStartMarker) < Settings.startRedetectionSeconds:
+						LogData(LOG_MINOR, '--- START-LINE SEEN BUT TOO SOON ---')
+					else:
+						Globals.controller.lastStartMarker = detectionTime
+						LogData(LOG_MAJOR, '--- START-LINE DETECTED ---')
+						Globals.seenStart = True
+						if Settings.startCrossedFrames < 1:
+							# No need to wait, we have already crossed the line
+							LogData(LOG_MAJOR, '--- START-LINE CROSSED ---')
+							Globals.lapTravelled = 0.0
+							Globals.lapCount += 1
+						else:
+							# Wait for a countdown before we announce crossing
+							Globals.startWaitCount = Settings.startCrossedFrames
 		# Convert to red, green, and blue sections
 		blue, green, red = cv2.split(cropped)
 		## Work out some automatic levels and gains based on the whole image

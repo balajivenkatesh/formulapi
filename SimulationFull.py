@@ -27,22 +27,41 @@ frameLimiter = True
 
 
 imageUrl = r'http://%s:%d/view.png' % (simulationIP, simulationPort)
-setDriveUrl = r'http://%s:%d/?m1=%%.2f&m2=%%.2f' % (simulationIP, simulationPort)
+setDriveUrl = r'http://%s:%d/?m1=%%.2f&m2=%%.2f&l1=%%d' % (simulationIP, simulationPort)
 
 # Functions used by the processing to control the YetiBorg
 def YetiLed(state):
+	global simLed
 	if state:
 		print '>>> LED: ON'
+		simLed = 1
 	else:
 		print '>>> LED: OFF'
+		simLed = 0
+	SendToSimulation()
 
 def YetiMotors(driveLeft, driveRight):
+	global simLeft
+	global simRight
 	simLeft = driveLeft * Settings.simulationDrivePower
 	simRight = driveRight * Settings.simulationDrivePower
-	url = setDriveUrl % (simLeft, simRight)
-	request = urllib.urlopen(url)
 	print '>>> MOTORS: %.3f | %.3f (x%.2f)' % (driveLeft, driveRight, Settings.simulationDrivePower)
+	SendToSimulation()
 
+# Function and data used to maintain the simulator state
+global simLed
+global simLeft
+global simRight
+simLed = 0
+simLeft = 0.0
+simRight = 0.0
+
+def SendToSimulation():
+	global simLed
+	global simLeft
+	global simRight
+	url = setDriveUrl % (simLeft, simRight, simLed)
+	request = urllib.urlopen(url)
 
 # Add the cross-module functions to the global list
 Globals.YetiLed = YetiLed
@@ -59,6 +78,9 @@ print 'Image processor and Race Code Functions loaded'
 # FIXME: Override the WaitForGo function to just start until we have lights in the simulation
 def WaitForGo():
 	LogUserCall(None, None)
+	YetiLed(True)
+	time.sleep(5.0)
+	YetiLed(False)
 	if Globals.running:
 		if Settings.firstStraightOverride:
 			ImageProcessor.SetImageMode(ImageProcessor.FIRST_STRAIGHT)
@@ -102,6 +124,14 @@ def ShowSettings():
 	print 'Corrective gain for derivative: %.3f' % (Settings.gainCorrection)
 	print
 
+	print '[Start marker detection]'
+	print 'Levels: Min Red = %d, Max Green = %d, Max Blue = %d' % (Settings.startMinR, Settings.startMaxG, Settings.startMaxB)
+	print 'Start minimum match ratio: %.1f %%' % (Settings.startRatioMin * 100.0)
+	print 'Start crossed delay %.2f s (%d frames)' % (Settings.startCrossedSeconds, Settings.startCrossedFrames)
+	print 'Start re-detection delay: %.1f s' % (Settings.startRedetectionSeconds)
+	print 'Start detection zone X limits: %d to %d' % (Settings.startX1, Settings.startX2)
+	print 'Start detection zone Y position: %d' % (Settings.startY)
+
 	print '[PID values]'
 	print '    P0: %f	I0:%f	D0: %f' % (Settings.Kp0, Settings.Ki0, Settings.Kd0)
 	print '    P1: %f	I1:%f	D1: %f' % (Settings.Kp1, Settings.Ki1, Settings.Kd1)
@@ -115,7 +145,7 @@ def ShowSettings():
 	print '[Drive settings]'
 	steeringMin = Settings.steeringOffset - Settings.steeringGain
 	steeringMax = Settings.steeringOffset + Settings.steeringGain
-	print '%.1f V of %.1f V (%.1f %%)' % (Settings.voltageOut, Settings.voltageIn, Settings.maxPower * 100.0)
+	print 'Maximum output: %.1f %%' % (Settings.maxPower * 100.0)
 	print 'Steering %+.1f %% to %+.1f %% (central %+.1f %%)' % (steeringMin * 100.0, steeringMax * 100.0, Settings.steeringOffset * 100.0)
 	print 'Missing frames before stopping: %d' % (Settings.maxBadFrames)
 	print
@@ -198,6 +228,8 @@ class SimulationImageCapture(threading.Thread):
 		super(SimulationImageCapture, self).__init__()
 		self.timeLast = time.time()
 		self.holdMs = 0
+		self.frameQueue = []
+		self.lagFrames = Settings.simulationLagFrames
 		self.start()
 
 	# Stream delegation loop
@@ -240,6 +272,15 @@ class SimulationImageCapture(threading.Thread):
 							cropOffset = int(cropOffset * height)
 							frame = frame[cropOffset : cropOffset + cropHeight, :, :]
 						frame = cv2.resize(frame, (Settings.imageWidth, Settings.imageHeight), interpolation = cv2.INTER_CUBIC)
+					# Generate a delay buffer to simulate camera lag
+					if self.lagFrames != Settings.simulationLagFrames:
+						self.lagFrames = Settings.simulationLagFrames
+						self.frameQueue = []
+					self.frameQueue.insert(0, frame)
+					if len(self.frameQueue) > self.lagFrames:
+						frame = self.frameQueue.pop()
+					else:
+						frame = numpy.zeros_like(frame)
 					processor.nextFrame = frame
 					processor.event.set()
 					# Work out the time delay required for the frame limiter

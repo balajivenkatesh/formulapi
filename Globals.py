@@ -27,7 +27,7 @@ imageMode = 0
 lastImageMode = 0
 seenStart = False
 startWaitCount = 0
-pollDelay = 0.1
+pollDelay = 0.25
 processingWriteLogLevel = 3
 processingPrintLogLevel = 2
 
