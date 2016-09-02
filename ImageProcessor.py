@@ -623,7 +623,8 @@ class StreamProcessor(threading.Thread):
 			# Waiting for the lights sequence
 			# Grab the lights section
 			lightsFrame = image[Settings.lightsY1 : Settings.lightsY2, Settings.lightsX1 : Settings.lightsX2]
-			Globals.displayFrame = lightsFrame
+			if showProcessing:
+				Globals.displayFrame = lightsFrame
 			# Get a difference from and to the new frame verses the frame two previous
 			if self.burnCount > 0:
 				self.burnCount -= 1
