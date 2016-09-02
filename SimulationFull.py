@@ -75,18 +75,6 @@ import ImageProcessor
 from RaceCodeFunctions import *
 print 'Image processor and Race Code Functions loaded'
 
-# FIXME: Override the WaitForGo function to just start until we have lights in the simulation
-def WaitForGo():
-	LogUserCall(None, None)
-	YetiLed(True)
-	time.sleep(5.0)
-	YetiLed(False)
-	if Globals.running:
-		if Settings.firstStraightOverride:
-			ImageProcessor.SetImageMode(ImageProcessor.FIRST_STRAIGHT)
-		else:
-			ImageProcessor.SetImageMode(ImageProcessor.FOLLOW_TRACK)
-
 # Function for displaying the current settings
 def ShowSettings():
 	print '=== NEW SETTINGS ==='
@@ -170,6 +158,8 @@ def ShowSettings():
 def SettingsOverrides():
 	Settings.steeringGain = Settings.simulationSteeringGain 
 	Settings.yetiSpeed = Settings.simulationYetiSpeed
+	Settings.lightsChangeThreshold = Settings.simulationLightsThreshold
+	Settings.lightsRedGain = Settings.simulationLightsRedGain
 
 # Function for auto-loading the settings file when it has changed
 global modificationStamp

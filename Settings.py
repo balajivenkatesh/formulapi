@@ -38,6 +38,8 @@ simulationDrivePower = 1.0			# Speed multiplier for the simulation mode
 simulationSteeringGain = 0.50		# Override for the steering gain in simulation mode
 simulationYetiSpeed = 0.78			# Override for the YetiBorg speed in simulation mode (used for distance calculations)
 simulationLagFrames = 1				# Number of frames to delay the processing by to simulate camera lag
+simulationLightsThreshold = 6.0		# Override for the brightness of the start lights in simulation mode
+simulationLightsRedGain = 1.5		# Override for the Gain term used for red/green tuning of the start lights in simulation mode
 
 # Track dimensions
 trackLengthCenter = 22.9			# Length of the center line in meters
@@ -70,7 +72,7 @@ waitForNextLapAfter = 1.0			# If we are more than this many meters ahead of the 
 
 # Power settings
 maxPower = 1.0						# Maximum of allowed drive output (1.0 is 100%)
-maxPower = 0.95						# Maximum of allowed drive output - Approximate calibration level
+#maxPower = 0.95					# Maximum of allowed drive output - Approximate calibration level
 #maxPower = 0.0						# Maximum of allowed drive output - Force stationary
 
 # Crop settings
