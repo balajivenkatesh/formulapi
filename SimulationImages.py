@@ -28,6 +28,11 @@ autoPath = r'C:\Temp\TrackImages'		# Directory to load images from
 #autoPath = raw_input('? ')				# Uncomment to be asked for the directory each time
 autoDelay = 1							# Delay in milliseconds between images, 0 will pause each frame until a key is pressed
 
+# Change the current directory to where this script is
+scriptDir = os.path.dirname(sys.argv[0])
+os.chdir(scriptDir)
+print 'Running script in directory "%s"' % (scriptDir)
+
 # Functions used by the processing to control the YetiBorg
 def YetiLed(state):
 	if state:

@@ -29,6 +29,11 @@ frameLimiter = True
 imageUrl = r'http://%s:%d/view.png' % (simulationIP, simulationPort)
 setDriveUrl = r'http://%s:%d/?m1=%%.2f&m2=%%.2f&l1=%%d' % (simulationIP, simulationPort)
 
+# Change the current directory to where this script is
+scriptDir = os.path.dirname(sys.argv[0])
+os.chdir(scriptDir)
+print 'Running script in directory "%s"' % (scriptDir)
+
 # Functions used by the processing to control the YetiBorg
 def YetiLed(state):
 	global simLed

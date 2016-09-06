@@ -21,6 +21,11 @@ import inspect
 import Globals
 print 'Libraries loaded'
 
+# Change the current directory to where this script is
+scriptDir = os.path.dirname(sys.argv[0])
+os.chdir(scriptDir)
+print 'Running script in directory "%s"' % (scriptDir)
+
 # Setup the ZeroBorg
 ZB = ZeroBorg.ZeroBorg()
 #ZB.i2cAddress = 0x44                  # Uncomment and change the value if you have changed the board address
