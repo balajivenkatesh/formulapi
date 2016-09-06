@@ -88,11 +88,11 @@ blackMaxG = 100						# Maximum green level for black detection (0-255)
 blackMaxB = 60						# Maximum blue level for black detection (0-255)
 
 # Image start line identification tuning
-startCrossedSeconds = 0.0			# Number of seconds to wait after the start line is seen before announcing crossing
+startCrossedSeconds = 0.5			# Number of seconds to wait after the start line is seen before announcing crossing
 startX1 = int(imageWidth  * 0.40)	# Lower X boundary for start line detection
 startX2 = int(imageWidth  * 0.60)	# Upper X boundary for start line detection
 startY  = int(imageHeight * 0.34)	# Y target for start line detection
-startMinR = 80						# Minimum red level in the start detection zone
+startMinR = 45						# Minimum red level in the start detection zone
 startMaxG = 50						# Maximum green level in the start detection zone
 startMaxB = 50						# Maximum blue level in the start detection zone
 startRatioMin = 0.90				# Minimum number of matching pixels per pixel in the detection zone
