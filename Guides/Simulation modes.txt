@@ -125,3 +125,32 @@ This simulation currently overrides these values:
 
 Motor speeds and LED values are passed back to the simulator when updated.
 They are also printed on screen for diagnostics.
+
+Our recommended sequence for starting a simulation run is:
+1. Load the simulation (Simulation.bat on Windows).
+2. Press the Start button under Video Stream Settings.
+3. Make sure the Off button is greyed out under Start Settings, if not press it.
+4. Choose your Start Lane value.
+5. Press Reset under Bot Simulation to place the YetiBorg into the correct lane.
+6. Run the SimulationFull.py script on the Raspberry Pi and wait until it has printed "WaitForGo()".
+   After this it will start printing FPS readings on the default settings, they should be ~ 5.0.
+7. Press the Green button under StartSettings.
+   The LED on the YetiBorg diagram should turn on, if not it failed to see the lights.
+   The script should print "Lights: 1 - Green".
+8. Press the Red button under StartSettings.
+   The script should print "Lights: 2 - Red".
+9. Press the Green button under StartSettings again.
+   The LED on the YetiBorg diagram should turn off, if not it failed to see the lights.
+   The script should print "Lights: 3 - Green".
+   This will be followed by "Lights: GO".
+   The YetiBorg will begin the race at this point.
+10. Finally press the Off button under StartSettings as soon as possible.
+    With the green lights still on the script can get confused and reduce the green level in the image too much.
+To start a new run:
+* If the SimulationFull.py script is still running press CTRL+C and wait for it to finish.
+  If it does not seem to stop even after waiting it can be forced to close like this:
+  Press CTRL+Z.
+  Enter the command: sudo killall python
+  Enter the command: fg
+  You should then see "Terminated" on the screen
+* Start the sequence again from #3. 
