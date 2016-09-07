@@ -1,0 +1,14 @@
+This software is built using:
+
+Jogl http://jogamp.org/
+Which is distrubuted under the creative commons Attibution 3.0 License
+
+Netty http://netty.io/
+Which is distrubuted under the Apache 2 Licnese
+
+License text is included under the Notices directory.
+Both are Copyrighted to their respective owners. For more information please go to their respective websites.
+
+Formula Pi is a trademark of Freeburn Robotics Limited
+PiBorg is a trade name of Freeburn Robotics Limited
+http://www.formulapi.com/
