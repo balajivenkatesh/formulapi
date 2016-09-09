@@ -116,12 +116,6 @@ This simulation currently overrides these values:
 * "Settings.maxPower" is replaced by "Settings.simulationDrivePower".
   This allows people to change the running speed in the simulation easily.
   Useful sometimes, but usually set to 1.0.
-* "Settings.lightsChangeThreshold" is overridden to "Settings.simulationLightsThreshold".
-  This allows for the fact that the simulation lights do not emit a halo of light.
-  Bear this in mind if you write your own start light detection logic.
-* "Settings.lightsRedGain" is overridden to "Settings.simulationLightsRedGain".
-  This allows for the fact that the simulation lights are more similar in brightness than the real lights.
-  Bear this in mind if you write your own start light detection logic.
 
 Motor speeds and LED values are passed back to the simulator when updated.
 They are also printed on screen for diagnostics.

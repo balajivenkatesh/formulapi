@@ -163,8 +163,6 @@ def ShowSettings():
 def SettingsOverrides():
 	Settings.steeringGain = Settings.simulationSteeringGain 
 	Settings.yetiSpeed = Settings.simulationYetiSpeed
-	Settings.lightsChangeThreshold = Settings.simulationLightsThreshold
-	Settings.lightsRedGain = Settings.simulationLightsRedGain
 
 # Function for auto-loading the settings file when it has changed
 global modificationStamp
