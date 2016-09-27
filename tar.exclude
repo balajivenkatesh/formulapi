@@ -1,0 +1,10 @@
+.git
+.gitignore
+Simulation
+Guides
+RacePy samples
+*.pyc
+logs/*
+tar.exclude
+*.gz
+*.gz~
