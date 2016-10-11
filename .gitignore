@@ -1,4 +1,5 @@
 *.pyc
 logs
+logs-old
 *.gz
 *.gz~
