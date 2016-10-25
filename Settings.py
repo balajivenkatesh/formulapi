@@ -160,8 +160,8 @@ overtakeLaneOffset = 1.5			# Lane shift away from the robot in front when overta
 overtakeDurationSeconds = 5.0		# Number of seconds to overtake for
 
 # Traffic light settings
-lightsChangeThreshold = 15.0		# Minimum colour difference to flag as a change in light colour 
-lightsRedGain = 3.0					# Gain term used to make the red and green levels consistent
+lightsChangeThreshold = 50.0		# Minimum colour difference to flag as a change in light colour 
+lightsRedGain = 2.0					# Gain term used to make the red and green levels consistent
 lightsX1 = int(imageWidth  * 0.45)	# Lower X boundary for light detection
 lightsX2 = int(imageWidth  * 0.55)	# Upper X boundary for light detection
 lightsY1 = int(imageHeight * 0.25)	# Lower Y boundary for light detection
