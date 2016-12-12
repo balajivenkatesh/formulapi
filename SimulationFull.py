@@ -18,10 +18,10 @@ import numpy
 import random
 import inspect
 import Globals
-import urllib
+import urllib2
 print 'Libraries loaded'
 
-simulationIP = '192.168.1.72'		# Address of the machine running the simulation
+simulationIP = '127.0.0.1'			# Address of the machine running the simulation
 simulationPort = 10000				# Port number used by the simulation
 frameLimiter = True
 
@@ -66,7 +66,12 @@ def SendToSimulation():
 	global simLeft
 	global simRight
 	url = setDriveUrl % (simLeft, simRight, simLed)
-	request = urllib.urlopen(url)
+	try:
+		request = urllib2.urlopen(url, timeout=1)
+	except IOError:
+		print 'Failed to send motor values to simulation!'
+	except urllib2.URLError:
+		print 'Failed to send motor values to simulation!'
 
 # Add the cross-module functions to the global list
 Globals.YetiLed = YetiLed
@@ -236,11 +241,22 @@ class SimulationImageCapture(threading.Thread):
 					processor = None
 			if processor:
 				# Grab the next frame from the simulation and send it to the processor
-				Globals.capture = cv2.VideoCapture(imageUrl) 
-				if not Globals.capture.isOpened():
-					Globals.capture.open()
-				ret, frame = Globals.capture.read()
-				if ret:
+				try:
+					request = urllib2.urlopen(imageUrl, timeout=1)
+					frame = numpy.fromstring(request.read(), dtype='uint8')
+					frame = cv2.imdecode(frame, cv2.CV_LOAD_IMAGE_COLOR)
+					okay = True
+				except IOError:
+					okay = False
+				except urllib2.URLError:
+					okay = False
+				if frame == None:
+					# Something went wrong and the decode failed...
+					print '!!! BAD IMAGE !!!'
+					with Globals.frameLock:
+						Globals.processorPool.insert(0, processor)
+					continue
+				if okay:
 					# Resize / crop the image if the resolution does not match
 					if (frame.shape[1] != Settings.imageWidth) or (frame.shape[0] != Settings.imageHeight):
 						ratioIn = frame.shape[1] / float(frame.shape[0])
@@ -293,12 +309,11 @@ class SimulationImageCapture(threading.Thread):
 		ImageProcessor.LogData(ImageProcessor.LOG_CRITICAL, 'Streaming terminated.')
 
 # Dummy startup
-Globals.capture = cv2.VideoCapture(imageUrl) 
-if not Globals.capture.isOpened():
-	Globals.capture.open()
-	if not Globals.capture.isOpened():
-		print 'Failed to open the simulation stream'
-		sys.exit()
+try:
+	request = urllib2.urlopen(imageUrl, timeout=10)
+except IOError:
+	print 'Failed to open the simulation stream'
+	sys.exit()
 
 print 'Setup stream processor threads'
 Globals.processorPool = [ImageProcessor.StreamProcessor(i+1) for i in range(Settings.processingThreads)]
