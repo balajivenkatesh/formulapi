@@ -1,3 +1,5 @@
+import time
+
 ### Enable logging ###
 StartDetailedLoging()
 StartUserLog()
@@ -18,8 +20,9 @@ WaitForWaypoint(2)
 # First corner of the race
 AimForLane(0)
 
-### Racing for 23 laps ###
-while LapCount() < 23:
+### Racing for 10 minutes ###
+endTime = time.time() + 10 * 60
+while time.time() < endTime:
 	# Drive in the center until turn 2
 	AimForLane(0)
 	WaitForWaypoint(4)

@@ -152,12 +152,12 @@ stuckHuntSeconds = 0.8				# Number of seconds to hunt for the track after revers
 stuckDetectColourWidth = 0.5		# Position in the image along X to look for the track colour
 stuckDetectColourHeight = 0.9		# Position in the image along Y to look for the track colour
 flipDetectionSeconds = 0.3			# Number of seconds with frames which seem flipped before inverting movement
-flipDetectionThreshold = 8.00		# Minimum gain between the background and the track
+flipDetectionThreshold = 12.00		# Minimum gain between the background and the track
 wrongWayThreshold = 10				# Number of wrong-way points before deciding to turn around
 wrongWaySpinSeconds = 1.2			# Number of seconds to spin when the wrong way around
-overtakeThreshold = 40				# Number of unexpected points before deciding there is a robot in front
-overtakeLaneOffset = 1.5			# Lane shift away from the robot in front when overtaking
-overtakeDurationSeconds = 5.0		# Number of seconds to overtake for
+overtakeThreshold = 38				# Number of unexpected points before deciding there is a robot in front
+overtakeLaneOffset = 1.0			# Lane shift away from the robot in front when overtaking
+overtakeDurationSeconds = 4.0		# Number of seconds to overtake for
 
 # Traffic light settings
 lightsChangeThreshold = 50.0		# Minimum colour difference to flag as a change in light colour 

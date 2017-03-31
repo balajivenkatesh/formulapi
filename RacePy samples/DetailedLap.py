@@ -1,5 +1,7 @@
+import time
+
 ### Settings for this race ###
-laps = 23
+secondsRacing = 10 * 60
 
 ### Start of the race ###
 # Wait until we can see the track
@@ -20,8 +22,10 @@ WaitForGo()
 Speed(100)
 
 ### During the race ###
-# Keep going until we have fished all of the laps
-while LapCount() < laps:
+# Keep going until we have fished all of the time
+startTime = time.time()
+endTime = startTime + secondsRacing
+while time.time < endTime:
 	# Full speed to the first corner
 	Speed(100)
 	WaitForWaypoint(2)
