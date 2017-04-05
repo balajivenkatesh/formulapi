@@ -5,7 +5,7 @@
 # This is the start-up script for the Formula Pi Race Code #
 #                                                          #
 # It is responsible for managing the threads which control #
-# the YetiBorg during a race                               #
+# the MonsterBorg during a race                            #
 ############################################################
 
 # Load all the library functions we want
@@ -34,30 +34,26 @@ scriptDir = os.path.dirname(sys.argv[0])
 os.chdir(scriptDir)
 print 'Running script in directory "%s"' % (scriptDir)
 
-# Functions used by the processing to control the YetiBorg
-def YetiLed(state):
+# Functions used by the processing to control the MonsterBorg
+def MonsterLed(r, g, b):
 	global simLed
-	if state:
-		print '>>> LED: ON'
-		simLed = 1
-	else:
-		print '>>> LED: OFF'
-		simLed = 0
+	print '>>> LED: %.1f %.1f %.1f' % (r, g, b)
+	simLed = (r, g, b)
 	SendToSimulation()
 
-def YetiMotors(driveLeft, driveRight):
+def MonsterMotors(driveLeft, driveRight):
 	global simLeft
 	global simRight
 	simLeft = driveLeft * Settings.simulationDrivePower
 	simRight = driveRight * Settings.simulationDrivePower
-	print '>>> MOTORS: %.3f | %.3f (x%.2f)' % (driveLeft, driveRight, Settings.simulationDrivePower)
+	#print '>>> MOTORS: %.3f | %.3f (x%.2f)' % (driveLeft, driveRight, Settings.simulationDrivePower)
 	SendToSimulation()
 
 # Function and data used to maintain the simulator state
 global simLed
 global simLeft
 global simRight
-simLed = 0
+simLed = (0, 0, 0)
 simLeft = 0.0
 simRight = 0.0
 
@@ -65,7 +61,10 @@ def SendToSimulation():
 	global simLed
 	global simLeft
 	global simRight
-	url = setDriveUrl % (simLeft, simRight, simLed)
+	if (simLed[0] > 0.0) or (simLed[1] > 0.0) or (simLed[2] > 0.0):
+		url = setDriveUrl % (simLeft, simRight, 1)
+	else:
+		url = setDriveUrl % (simLeft, simRight, 0)
 	try:
 		request = urllib2.urlopen(url, timeout=1)
 	except IOError:
@@ -74,8 +73,8 @@ def SendToSimulation():
 		print 'Failed to send motor values to simulation!'
 
 # Add the cross-module functions to the global list
-Globals.YetiLed = YetiLed
-Globals.YetiMotors = YetiMotors
+Globals.MonsterLed = MonsterLed
+Globals.MonsterMotors = MonsterMotors
 
 # Setup synchronisation locks
 Globals.frameLock = threading.Lock()
@@ -131,9 +130,9 @@ def ShowSettings():
 	print 'Start detection zone Y position: %d' % (Settings.startY)
 
 	print '[PID values]'
-	print '    P0: %f	I0:%f	D0: %f' % (Settings.Kp0, Settings.Ki0, Settings.Kd0)
-	print '    P1: %f	I1:%f	D1: %f' % (Settings.Kp1, Settings.Ki1, Settings.Kd1)
-	print '    P2: %f	I2:%f	D2: %f' % (Settings.Kp2, Settings.Ki2, Settings.Kd2)
+	print '    P0: %f   I0:%f   D0: %f' % (Settings.Kp0, Settings.Ki0, Settings.Kd0)
+	print '    P1: %f   I1:%f   D1: %f' % (Settings.Kp1, Settings.Ki1, Settings.Kd1)
+	print '    P2: %f   I2:%f   D2: %f' % (Settings.Kp2, Settings.Ki2, Settings.Kd2)
 	print
 
 	print '[FIR filter]'
@@ -166,8 +165,9 @@ def ShowSettings():
 
 # Function to load settings overrides
 def SettingsOverrides():
-	Settings.steeringGain = Settings.simulationSteeringGain 
-	Settings.yetiSpeed = Settings.simulationYetiSpeed
+	Settings.flippedImage = True
+	Settings.horizontalFlip = False
+	Settings.monsterSpeed = Settings.simulationMonsterSpeed
 
 # Function for auto-loading the settings file when it has changed
 global modificationStamp
@@ -242,7 +242,7 @@ class SimulationImageCapture(threading.Thread):
 			if processor:
 				# Grab the next frame from the simulation and send it to the processor
 				try:
-					request = urllib2.urlopen(imageUrl, timeout=1)
+					request = urllib2.urlopen(imageUrl, timeout=5)
 					frame = numpy.fromstring(request.read(), dtype='uint8')
 					frame = cv2.imdecode(frame, cv2.CV_LOAD_IMAGE_COLOR)
 					okay = True
@@ -251,7 +251,7 @@ class SimulationImageCapture(threading.Thread):
 				except urllib2.URLError:
 					okay = False
 				if frame == None:
-					# Something went wrong and the decode failed...
+					# Something went wrong decoding the image
 					print '!!! BAD IMAGE !!!'
 					with Globals.frameLock:
 						Globals.processorPool.insert(0, processor)
@@ -362,18 +362,18 @@ try:
 		# Check if on-the-fly settings have been changed
 		AutoReloadSettings()
 	# Disable all drives
-	YetiMotors(0.0, 0.0)
+	MonsterMotors(0.0, 0.0)
 except KeyboardInterrupt:
 	# CTRL+C exit, disable all drives
 	print '\nUser shutdown'
-	YetiMotors(0.0, 0.0)
+	MonsterMotors(0.0, 0.0)
 except:
 	# Unexpected error, shut down!
 	e = sys.exc_info()
 	print
 	print e
 	print '\nUnexpected error, shutting down!'
-	YetiMotors(0.0, 0.0)
+	MonsterMotors(0.0, 0.0)
 # Tell each thread to stop, and wait for them to end
 Globals.running = False
 while allProcessors:
@@ -387,5 +387,5 @@ raceThread.terminated = True
 Globals.controller.join()
 captureThread.join()
 raceThread.join()
-YetiMotors(0.0, 0.0)
+MonsterMotors(0.0, 0.0)
 print 'Program terminated.'

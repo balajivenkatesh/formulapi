@@ -42,8 +42,8 @@ controller = None
 frameLock = None
 
 # Functions
-YetiLed = None
-YetiMotors = None
+MonsterLed = None
+MonsterMotors = None
 
 # Other resources
 capture = None

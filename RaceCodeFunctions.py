@@ -117,7 +117,7 @@ def CurrentTrackPosition():
 
 def CurrentAngle():
 	LogUserCall(None, None)
-	radians = math.atan(Globals.controller.lastD1)
+	radians = math.atan(Globals.controller.lastD1 / Settings.angleCorrection)
 	return radians * RAD_TO_DEG
 
 def TrackCurve():
