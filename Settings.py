@@ -19,7 +19,7 @@ horizontalFlip = False				# True if the camera left/right needs to be flipped
 
 # Startup
 startupMode = 1						# Startup mode, use 1 for Race.py calling WaitForGo
-firstStraightOverride = False		# If True we will use FIRST_STRAIGHT mode after the start lights
+firstStraightOverride = True		# If True we will use FIRST_STRAIGHT mode after the start lights
 									# This will move straight ahead for the intervals below
 									# If False we will go to FOLLOW_TRACK directly instead
 firstStraightMin = 2.0				# Minimum number of seconds straight forward
@@ -37,7 +37,7 @@ monsterSpeedFullSteering = 0.0		# Speed the MonsterBorg moves at with 100% steer
 # Adjustments used for the simulation
 simulationDrivePower = 1.0			# Speed multiplier for the simulation mode
 simulationLagFrames = 5				# Number of frames to delay the processing by to simulate camera lag
-simulationMonsterSpeed = 1.00		# Override for the MonsterBorg speed in simulation mode (used for distance calculations)
+simulationMonsterSpeed = 1.44		# Override for the MonsterBorg speed in simulation mode (used for distance calculations)
 
 # Track dimensions
 trackLengthCenter = 22.9			# Length of the center line in meters
@@ -160,6 +160,8 @@ wrongWaySpinSeconds = 0.8			# Number of seconds to spin when the wrong way aroun
 overtakeThreshold = 36				# Number of unexpected points before deciding there is a robot in front
 overtakeLaneOffset = 1.0			# Lane shift away from the robot in front when overtaking
 overtakeDurationSeconds = 3.0		# Number of seconds to overtake for
+overtakeBrakingSpeed = 0.7			# Speed percentage to slow down to when starting an overtake
+overtakeBrakingSeconds = 1.0		# Number of seconds to slow down when overtaking
 
 # Traffic light settings
 lightsChangeThreshold = 50.0		# Minimum colour difference to flag as a change in light colour 
@@ -209,6 +211,7 @@ stuckHuntFrames = int(stuckHuntSeconds * frameRate)
 flipDetectionFrames = int(flipDetectionSeconds * frameRate)
 wrongWaySpinFrames = int(wrongWaySpinSeconds * frameRate)
 overtakeDurationFrames = int(overtakeDurationSeconds * frameRate)
+overtakeBrakingFrames = int(overtakeBrakingSeconds * frameRate)
 startCrossedFrames = int(startCrossedSeconds * frameRate)
 
 # Work out other positions in final X and Y

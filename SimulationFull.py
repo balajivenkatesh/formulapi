@@ -388,4 +388,5 @@ Globals.controller.join()
 captureThread.join()
 raceThread.join()
 MonsterMotors(0.0, 0.0)
+MonsterLed(Globals.colour[0] * 0.3, Globals.colour[1] * 0.3, Globals.colour[2] * 0.3)
 print 'Program terminated.'

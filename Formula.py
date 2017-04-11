@@ -289,5 +289,5 @@ raceThread.join()
 Globals.capture.release()
 del Globals.capture
 TB.MotorsOff()
-TB.SetLeds(0,0,0)
+TB.SetLeds(Globals.colour[0] * 0.3, Globals.colour[1] * 0.3, Globals.colour[2] * 0.3)
 print 'Program terminated.'

@@ -151,6 +151,7 @@ class ControlLoop(threading.Thread):
 		self.stuckSpeed = -1.0
 		self.overtaking = False
 		self.overtakeRemainingTicks = 0
+		self.overtakeBrakingTicks = 0
 		self.unknownPointCount = 0
 		self.unknownPointAverage = 0.5
 		self.lastSpeed = 0.0
@@ -350,16 +351,22 @@ class ControlLoop(threading.Thread):
 					# Robot to the right, overtake to the left
 					self.autoTargetLane = +Settings.overtakeLaneOffset
 				self.overtakeRemainingTicks = Settings.overtakeDurationFrames
+				self.overtakeBrakingTicks = Settings.overtakeBrakingFrames
 				self.overtaking = True
 				LogData(LOG_MAJOR, 'Overtaking at lane offset %.2f' % (self.autoTargetLane))
 		if self.overtaking:
 			# Count down the remaining overtake distance
 			self.overtakeRemainingTicks -= 1
+			self.overtakeBrakingTicks -= 1
 			if self.overtakeRemainingTicks < 0:
 				# Overtaking complete, reset the target lane for the next loop
 				LogData(LOG_MAJOR, '< END OVERRIDE: OVERTAKE >')
 				self.autoTargetLane = 0.0
 				self.overtaking = False
+			elif self.overtakeBrakingTicks >= 0:
+				# Initial part of the overtake, apply braking
+				overrideSpeed *= Settings.overtakeBrakingSpeed
+			print overrideSpeed
 		self.accumulateDistance = calculateDistance
 		return overrideSpeed, overrideSteering
 
@@ -1195,5 +1202,6 @@ except:
 	g = 1
 	b = 1
 print 'Colour: %.2f, %.2f, %.2f' % (r, g, b)
+Globals.colour = (r, g, b)
 Globals.MonsterLed(r, g, b)
 
