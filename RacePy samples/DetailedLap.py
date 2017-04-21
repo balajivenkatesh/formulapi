@@ -15,7 +15,7 @@ photo = GetLatestImage()
 SaveImage(photo, 'Start-line')
 # Start logging what happens
 StartUserLog()
-StartDetailedLog()
+StartDetailedLoging()
 # Wait for the go signal from the start/stop lights.
 WaitForGo()
 # Go at max speed
