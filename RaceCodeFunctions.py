@@ -113,7 +113,8 @@ def TrackFound():
 
 def CurrentTrackPosition():
 	LogUserCall(None, None)
-	return Globals.controller.lastD0
+	calculatedTrackValues = Globals.controller.lastSample
+	return calculatedTrackValues[0] + calculatedTrackValues[1]
 
 def CurrentAngle():
 	LogUserCall(None, None)
