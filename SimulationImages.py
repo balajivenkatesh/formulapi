@@ -33,19 +33,16 @@ scriptDir = os.path.dirname(sys.argv[0])
 os.chdir(scriptDir)
 print 'Running script in directory "%s"' % (scriptDir)
 
-# Functions used by the processing to control the YetiBorg
-def YetiLed(state):
-	if state:
-		print '>>> LED: ON'
-	else:
-		print '>>> LED: OFF'
+# Functions used by the processing to control the MonsterBorg
+def MonsterLed(r, g, b):
+	print '>>> LED: %.1f %.1f %.1f' % (r, g, b)
 
-def YetiMotors(driveLeft, driveRight):
+def MonsterMotors(driveLeft, driveRight):
 	print '>>> MOTORS: %.3f | %.3f' % (driveLeft, driveRight)
 
 # Add the cross-module functions to the global list
-Globals.YetiLed = YetiLed
-Globals.YetiMotors = YetiMotors
+Globals.MonsterLed = MonsterLed
+Globals.MonsterMotors = MonsterMotors
 
 # Setup synchronisation locks
 Globals.frameLock = threading.Lock()

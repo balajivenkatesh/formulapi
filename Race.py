@@ -15,8 +15,10 @@ while time.time() < endTime:
 	# Wait until we reach the start / finish line
 	WaitForWaypoint(1)
 
-### Wait for a few seconds ###
-WaitForSeconds(4)
+### Slow the MonsterBorg down gradually from 100% to 0% ###
+for slowing in range(99, -1, -1):
+	Speed(slowing)
+	WaitForSeconds(0.01)
 
 ### Disable logging ###
 EndDetailedLog()

@@ -16,9 +16,10 @@ trackFound = False
 lastLines = []
 lapCount = 0
 lapTravelled = 0.0
+colour = (0, 0, 0)
 
 # Defaults for values set from the Race Code Functions
-userSpeed = 100.0
+userSpeed = 1.0
 userTargetLane = 0.0
 
 # States
@@ -42,8 +43,8 @@ controller = None
 frameLock = None
 
 # Functions
-YetiLed = None
-YetiMotors = None
+MonsterLed = None
+MonsterMotors = None
 
 # Other resources
 capture = None

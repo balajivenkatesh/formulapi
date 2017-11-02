@@ -21,10 +21,10 @@ The "Settings.py" file has detailed comments on the settings themselves, we woul
 
 [Areas for improvement]
 There are some good candidates for improving the actual image processing that will be worth looking at first:
-* Processing speed - From our testing anything which improves the frame rate of the processing makes the YetiBorg follow the track better.
+* Processing speed - From our testing anything which improves the frame rate of the processing makes the MonsterBorg follow the track better.
 * Speed control - At the moment the speed is entirely controlled by the code in "Race.py", it does not use the camera data at all.
 * Overtaking and traffic detection - The algorithm here is fairly crude, a more precise detection or overtaking logic will likely give better results.
-* Harsh track angles - The current point sweeping logic works badly as the track approaches a 90 degree angle from the YetiBorg, this is particularly obvious on the S curve.
+* Harsh track angles - The current point sweeping logic works badly as the track approaches a 90 degree angle from the MonsterBorg, this is particularly obvious on the S curve.
 * Track mapping - The code relies completely on the image processing, it could be improved if it has some kind of map to decide where it is roughly on the track.
 
 [Breakdown of class ImageCapture]
@@ -61,20 +61,20 @@ StreamProcessor.ProcessImage - Performs the bulk on the image processing.
 Responsible for:
 * Any override mode which affects the image processing.
 * Detecting light changes.
-* Checking if the YetiBorg has flipped over.
-* Testing if the YetiBorg is stuck.
+* Checking if the MonsterBorg has flipped over.
+* Testing if the MonsterBorg is stuck.
 * Spotting the start line and maintaining the lap counter from it.
 * Finding the lanes from the image.
-* Detecting the YetiBorg is driving the wrong way.
+* Detecting the MonsterBorg is driving the wrong way.
 * Reducing the lanes to a set of points for analysis.
 * Drawing most of the debugging displays if enabled.
 
-StreamProcessor.SetSpeedFromLines - Takes a set of points and determines where the YetiBorg is on the track.
+StreamProcessor.SetSpeedFromLines - Takes a set of points and determines where the MonsterBorg is on the track.
 Responsible for:
 * Deciding which line(s) to make decisions based on.
 * Handling situations where there is not enough data to process.
 * Calculating the offset from the chosen lane (usually the closest).
-* Calculating the angle the YetiBorg is facing compared to the track.
+* Calculating the angle the MonsterBorg is facing compared to the track.
 * Calculating how much the track is bending around a corner.
 * Drawing the final processing display if enabled.
 * Setting an event for the ControlLoop thread to update motor speeds from the data.
@@ -92,10 +92,10 @@ ControlLoop.run - Waits for an updated set of data from the image processing, en
 ControlLoop.Reset / __Reset__ - Sets the initial state of all the various filters and overrides, also disables the motors.
 
 ControlLoop.SetDrive - Takes a speed and steering pair of levels and determines the appropriate speeds of the left and right motors.
-It passes these speeds to Globals.YetiMotors to perform the change.
+It passes these speeds to Globals.MonsterMotors to perform the change.
 Also calls ControlLoop.IncreaseDistance to calculate the distance travelled since the last speed setting.
 
-ControlLoop.IncreaseDistance - Uses the previously set speed and steering along with the last and current offsets to determine how far the YetiBorg moved since the last call.
+ControlLoop.IncreaseDistance - Uses the previously set speed and steering along with the last and current offsets to determine how far the MonsterBorg moved since the last call.
 
 ControlLoop.FirFilter - Performs a basic averaging of the last few speed and steering values before passing them to ControlLoop.SetDrive.
 

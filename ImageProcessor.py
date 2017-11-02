@@ -151,6 +151,7 @@ class ControlLoop(threading.Thread):
 		self.stuckSpeed = -1.0
 		self.overtaking = False
 		self.overtakeRemainingTicks = 0
+		self.overtakeBrakingTicks = 0
 		self.unknownPointCount = 0
 		self.unknownPointAverage = 0.5
 		self.lastSpeed = 0.0
@@ -185,7 +186,7 @@ class ControlLoop(threading.Thread):
 			# Turning right
 			driveRight *= 1.0 - steering
 		# Set the motors to the new speeds
-		Globals.YetiMotors(driveLeft, driveRight)
+		Globals.MonsterMotors(driveLeft, driveRight)
 		if (Globals.frameAnnounce == 0):
 			LogData(LOG_MINOR, 'Motors: %+.3f, %+.3f' % (driveLeft, driveRight))
 		# Calculate the travelled distance between the last two frames
@@ -198,13 +199,13 @@ class ControlLoop(threading.Thread):
 			# Work out motor speed based on steering and power applied
 			turningSpeed = abs(self.lastSteering)
 			straightSpeed = 1.0 - turningSpeed
-			calculatedSpeed = (turningSpeed * Settings.yetiSpeedFullSteering)
-			calculatedSpeed += (straightSpeed * Settings.yetiSpeed)
+			calculatedSpeed = (turningSpeed * Settings.monsterSpeedFullSteering)
+			calculatedSpeed += (straightSpeed * Settings.monsterSpeed)
 			if calculatedSpeed < 0.0:
 				calculatedSpeed = 0.0
 			calculatedSpeed *= self.lastSpeed
 			# Work out the distance along the track axis based on the angle of travel
-			hyp = calculatedSpeed * Settings.yetiDistancePerFrame
+			hyp = calculatedSpeed * Settings.monsterDistancePerFrame
 			opp = self.changeD0 * Settings.laneWidth
 			hyp2 = hyp ** 2
 			opp2 = opp **2
@@ -350,16 +351,22 @@ class ControlLoop(threading.Thread):
 					# Robot to the right, overtake to the left
 					self.autoTargetLane = +Settings.overtakeLaneOffset
 				self.overtakeRemainingTicks = Settings.overtakeDurationFrames
+				self.overtakeBrakingTicks = Settings.overtakeBrakingFrames
 				self.overtaking = True
 				LogData(LOG_MAJOR, 'Overtaking at lane offset %.2f' % (self.autoTargetLane))
 		if self.overtaking:
 			# Count down the remaining overtake distance
 			self.overtakeRemainingTicks -= 1
+			self.overtakeBrakingTicks -= 1
 			if self.overtakeRemainingTicks < 0:
 				# Overtaking complete, reset the target lane for the next loop
 				LogData(LOG_MAJOR, '< END OVERRIDE: OVERTAKE >')
 				self.autoTargetLane = 0.0
 				self.overtaking = False
+			elif self.overtakeBrakingTicks >= 0:
+				# Initial part of the overtake, apply braking
+				overrideSpeed *= Settings.overtakeBrakingSpeed
+			print overrideSpeed
 		self.accumulateDistance = calculateDistance
 		return overrideSpeed, overrideSteering
 
@@ -456,7 +463,11 @@ class StreamProcessor(threading.Thread):
 					break
 				try:
 					# grab the image and do some processing on it
-					if Settings.flippedImage:
+					if Settings.flippedImage and Settings.horizontalFlip:
+						image = cv2.flip(self.nextFrame, 0)
+					elif Settings.horizontalFlip:
+						image = cv2.flip(self.nextFrame, 1)
+					elif Settings.flippedImage:
 						image = cv2.flip(self.nextFrame, -1)
 					else:
 						image = self.nextFrame
@@ -667,7 +678,6 @@ class StreamProcessor(threading.Thread):
 			if Globals.startLights == READY_OFF:
 				# Move on if we changed to green
 				if lightOn == 'G':
-					Globals.YetiLed(True)
 					Globals.startLights = FIRST_GREEN
 					LogData(LOG_MAJOR, 'Lights: 1 - Green')
 			elif Globals.startLights == FIRST_GREEN:
@@ -678,7 +688,6 @@ class StreamProcessor(threading.Thread):
 			elif Globals.startLights == SECOND_RED:
 				# Move on if we changed to green
 				if lightOn == 'G': #and lightOff == 'R':
-					Globals.YetiLed(False)
 					Globals.startLights = THIRD_GREEN_GO
 					LogData(LOG_MAJOR, 'Lights: 3 - Green')
 			elif Globals.startLights == THIRD_GREEN_GO:
@@ -1164,4 +1173,35 @@ class ImageCapture(threading.Thread):
 				time.sleep(0.01)
 		LogData(LOG_CRITICAL, 'Streaming terminated.')
 
+# Boot-up code
 Globals.lastFrameStamp = time.time()
+try:
+	# get our assigned colour
+	fileIn = open('/colour.txt', 'r')
+	dataIn = fileIn.read()
+	fileIn.close()
+	dataIn = dataIn.split('\n')[0]
+	dataIn.strip()
+	dataIn = dataIn.split(',')
+	if len(dataIn) == 3:
+		# Attempt to extract the values
+		print 'Team colour read'
+		r = float(dataIn[0])
+		g = float(dataIn[1])
+		b = float(dataIn[2])
+	else:
+		# Badly formatted, use white to indicate a problem
+		print 'Team colour formatted badly'
+		r = 1
+		g = 1
+		b = 1
+except:
+	# Failed to access the file or data for some reason
+	print 'Error reading team colour'
+	r = 1
+	g = 1
+	b = 1
+print 'Colour: %.2f, %.2f, %.2f' % (r, g, b)
+Globals.colour = (r, g, b)
+Globals.MonsterLed(r, g, b)
+

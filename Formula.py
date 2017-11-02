@@ -5,7 +5,7 @@
 # This is the start-up script for the Formula Pi Race Code #
 #                                                          #
 # It is responsible for managing the threads which control #
-# the YetiBorg during a race                               #
+# the MonsterBorg during a race                            #
 ############################################################
 
 # Load all the library functions we want
@@ -15,7 +15,7 @@ import sys
 import threading
 import cv2
 import numpy
-import ZeroBorg
+import ThunderBorg
 import random
 import inspect
 import Globals
@@ -26,42 +26,39 @@ scriptDir = os.path.dirname(sys.argv[0])
 os.chdir(scriptDir)
 print 'Running script in directory "%s"' % (scriptDir)
 
-# Setup the ZeroBorg
-ZB = ZeroBorg.ZeroBorg()
-#ZB.i2cAddress = 0x44                  # Uncomment and change the value if you have changed the board address
-ZB.Init()
-if not ZB.foundChip:
-    boards = ZeroBorg.ScanForZeroBorg()
-    if len(boards) == 0:
-        print 'No ZeroBorg found, check you are attached :)'
-    else:
-        print 'No ZeroBorg at address %02X, but we did find boards:' % (ZB.i2cAddress)
-        for board in boards:
-            print '    %02X (%d)' % (board, board)
-        print 'If you need to change the IÂ²C address change the setup line so it is correct, e.g.'
-        print 'ZB.i2cAddress = 0x%02X' % (boards[0])
-    sys.exit()
-#ZB.SetEpoIgnore(True)                 # Uncomment to disable EPO latch, needed if you do not have a switch / jumper
-ZB.SetCommsFailsafe(False)
-ZB.ResetEpo()
-ZB.SetLed(False)
+# Setup the ThunderBorg
+TB = ThunderBorg.ThunderBorg()
+#TB.i2cAddress = 0x15                  # Uncomment and change the value if you have changed the board address
+TB.Init()
+if not TB.foundChip:
+	boards = ThunderBorg.ScanForThunderBorg()
+	if len(boards) == 0:
+		print 'No ThunderBorg found, check you are attached :)'
+	else:
+		print 'No ThunderBorg at address %02X, but we did find boards:' % (TB.i2cAddress)
+		for board in boards:
+			print '    %02X (%d)' % (board, board)
+		print 'If you need to change the I²C address change the setup line so it is correct, e.g.'
+		print 'TB.i2cAddress = 0x%02X' % (boards[0])
+	sys.exit()
+TB.SetCommsFailsafe(False)
+TB.SetLedShowBattery(False)
+TB.SetLeds(0,0,0)
 
-# Functions used by the processing to control the YetiBorg
-def YetiLed(state):
-	global ZB
-	ZB.SetLed(state)
+# Functions used by the processing to control the MonsterBorg
+def MonsterLed(r, g, b):
+	global TB
+	TB.SetLeds(r, g, b)
 
-def YetiMotors(driveLeft, driveRight):
-	global ZB
-	ZB.SetMotor1(-driveRight * Settings.maxPower) # Front right
-	ZB.SetMotor2(-driveLeft  * Settings.maxPower) # Front left
-	ZB.SetMotor3(-driveLeft  * Settings.maxPower) # Rear left
-	ZB.SetMotor4(-driveRight * Settings.maxPower) # Rear right
+def MonsterMotors(driveLeft, driveRight):
+	global TB
+	TB.SetMotor1(driveRight * Settings.maxPower) # Right
+	TB.SetMotor2(driveLeft  * Settings.maxPower) # Left
 
 
 # Add the cross-module functions to the global list
-Globals.YetiLed = YetiLed
-Globals.YetiMotors = YetiMotors
+Globals.MonsterLed = MonsterLed
+Globals.MonsterMotors = MonsterMotors
 
 # Setup synchronisation locks
 Globals.frameLock = threading.Lock()
@@ -117,9 +114,9 @@ def ShowSettings():
 	print 'Start detection zone Y position: %d' % (Settings.startY)
 
 	print '[PID values]'
-	print '    P0: %f	I0:%f	D0: %f' % (Settings.Kp0, Settings.Ki0, Settings.Kd0)
-	print '    P1: %f	I1:%f	D1: %f' % (Settings.Kp1, Settings.Ki1, Settings.Kd1)
-	print '    P2: %f	I2:%f	D2: %f' % (Settings.Kp2, Settings.Ki2, Settings.Kd2)
+	print '    P0: %f   I0:%f   D0: %f' % (Settings.Kp0, Settings.Ki0, Settings.Kd0)
+	print '    P1: %f   I1:%f   D1: %f' % (Settings.Kp1, Settings.Ki1, Settings.Kd1)
+	print '    P2: %f   I2:%f   D2: %f' % (Settings.Kp2, Settings.Ki2, Settings.Kd2)
 	print
 
 	print '[FIR filter]'
@@ -229,7 +226,7 @@ raceThread = RaceLoop()
 
 try:
 	print 'Press CTRL+C to quit'
-	ZB.MotorsOff()
+	TB.MotorsOff()
 	if ImageProcessor.showProcessing:
 		cv2.namedWindow('Processed', cv2.WINDOW_NORMAL)
 	if ImageProcessor.predatorView:
@@ -262,18 +259,20 @@ try:
 		# Check if on-the-fly settings have been changed
 		AutoReloadSettings()
 	# Disable all drives
-	ZB.MotorsOff()
+	TB.MotorsOff()
 except KeyboardInterrupt:
 	# CTRL+C exit, disable all drives
+	TB.SetLeds(0.5,0.5,0.5)
 	print '\nUser shutdown'
-	ZB.MotorsOff()
+	TB.MotorsOff()
 except:
 	# Unexpected error, shut down!
+	TB.SetLeds(0.5,0.5,0.5)
 	e = sys.exc_info()
 	print
 	print e
 	print '\nUnexpected error, shutting down!'
-	ZB.MotorsOff()
+	TB.MotorsOff()
 # Tell each thread to stop, and wait for them to end
 Globals.running = False
 while allProcessors:
@@ -289,6 +288,6 @@ captureThread.join()
 raceThread.join()
 Globals.capture.release()
 del Globals.capture
-ZB.MotorsOff()
-ZB.SetLed(False)
+TB.MotorsOff()
+TB.SetLeds(Globals.colour[0] * 0.3, Globals.colour[1] * 0.3, Globals.colour[2] * 0.3)
 print 'Program terminated.'

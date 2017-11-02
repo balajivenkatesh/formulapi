@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <body>
-Please note that most of the installation steps will expect the Raspberry Pi to be connected to the internet.
-On a Raspberry Pi Zero this will probably need a USB hub and a WiFi / Ethernet dongle.
+Please note that most of the installation steps will expect the Raspberry Pi to be connected to the internet.<br />
+We recommend using a Raspberry Pi 3 as that is what will be fitted in the MonsterBorgs.<br />
 
 <h2>Basic Raspbian image</h2>
-The standard image is based on the offical version of Raspbian.
+The standard image is based on the official version of Raspbian.
 We have tested using the 27th of May 2016 version: http://downloads.raspberrypi.org/raspbian/images/raspbian-2016-05-31/
 We recommend following the install guide <a href="https://www.raspberrypi.org/documentation/installation/installing-images/README.md">here</a>.
 
@@ -16,7 +16,7 @@ We also recommend expanding the filesystem using <code>raspi-config</code>:
     <li>Move right until <code>Finish</code> is highlighted, then press <kbd>ENTER</kbd></li>
 </ol>
 
-<h2>Installing the ZeroBorg</h2>
+<h2>Installing the ThunderBorg</h2>
 First enable I2C using <code>raspi-config</code>:
 <ol>
     <li>Enter the following command in a terminal: <code>sudo raspi-config</code></li>
@@ -32,13 +32,13 @@ If the I2C option is not available simply proceed to the next step.<br />
 <br />
 To run through the automatic installer just use this one line in a terminal:<br />
 <pre class="brush: bash">
-bash &lt;(curl https://www.piborg.org/install-zeroborg.txt)
+bash &lt;(curl https://www.piborg.org/install-thunderborg.txt)
 </pre>
 If you would prefer to manually run through the steps use the commands below:<br />
 <pre class="brush: bash">
-mkdir ~/zeroborg
-cd ~/zeroborg
-wget http://www.piborg.org/downloads/zeroborg/examples.zip
+mkdir ~/thunderborg
+cd ~/thunderborg
+wget http://www.piborg.org/downloads/thunderborg/examples.zip
 unzip examples.zip
 chmod +x install.sh
 ./install.sh
@@ -83,7 +83,8 @@ This means you will need a script called <code>Formula.py</code> the starting pa
 This will be how our standard example works, with <code>Formula.py</code> loading all of the other scripts.
 
 If you wish to use a language other than Python you may, but it must be started from the command in <code>rc.local</code> listed above.
-If your code will not run on our standard image you will need to provide a pre-setup micro SD card which will work with the Raspberry Pi Zero and will start up into a waiting for lights state on its own.
+If your code will not run on our standard image you will need to provide a pre-setup micro SD card which will work with the Raspberry Pi 3 and will start up into a waiting for lights state on its own.
+It will also need to access the <code>/colours.txt</code> file we write to the card and set the RGB values from the first line to the ThunderBorg LEDs (see the rules for more details).
 </body>
 </html>
 

@@ -4,7 +4,7 @@ At the moment there are two provided simulation scripts:
 
 The simulation scripts are effectively replacements for "Formula.py".
 They work with the same scripts and settings as normal with some minor differences:
-* They will run on a Raspberry Pi that does not have a ZeroBorg attached.
+* They will run on a Raspberry Pi that does not have a ThunderBorg attached.
   * They may run on other computers as well, but we recommend testing with a Raspberry Pi for accuracy.
 * The outputs for the motors and the LED are sent somewhere else, such as to the screen.
 * They use an input other than the camera for the video feed.
@@ -92,12 +92,12 @@ This simulation overrides the "Settings.fpsInterval" value to 1 so that detailed
 Motor speeds and LED values are printed to the screen.
 
 [SimulationFull.py]
-This simulation is best suited for testing the overall race logic and movement of the YetiBorg.
-It connects to the simulator written by computernerd486 to provide a testing setup without a YetiBorg or track.
+This simulation is best suited for testing the overall race logic and movement of the MonsterBorg.
+It connects to the simulator written by computernerd486 to provide a testing setup without a MonsterBorg or track.
 Performance varies depending on a few factors, ideally it will work just as well as the real running code with a good network connection.
 We recommend running the simulator itself on another computer connected via a network.
 
-There are two basic modes for this simuation:
+There are two basic modes for this simulation:
 1. Frame limited to represent how the real camera frame rate will be.
 2. As fast as possible to allow for processing speed testing.
 
@@ -107,15 +107,12 @@ The main simulation parameters towards the top of the file are:
 * frameLimiter - True will use mode 1 (camera frame rate maximum), False will use mode 2 (as fast as possible).
 
 This simulation currently overrides these values:
-* "Settings.steeringGain" is overridden to "Settings.simulationSteeringGain".
-  This allows us to simulate the turning circle of the YetiBorg for now.
-  Bear this in mind if you are writing your own steering logic.
-* "Settings.yetiSpeed" is overridden to "Settings.simulationYetiSpeed".
-  This is because the simulation movement speed is lower than reality.
-  This change corrects the waypoint calculations to reflect this.
 * "Settings.maxPower" is replaced by "Settings.simulationDrivePower".
   This allows people to change the running speed in the simulation easily.
   Useful sometimes, but usually set to 1.0.
+* "simulationLagFrames" is used to queue incoming images from the simulation.
+  This allows for simulation of the lag time coming from the real camera.
+  We have found this to be similar to reality when set to 2, but this will probably be different if the frame rate is changed.
 
 Motor speeds and LED values are passed back to the simulator when updated.
 They are also printed on screen for diagnostics.
@@ -125,19 +122,18 @@ Our recommended sequence for starting a simulation run is:
 2. Press the Start button under Video Stream Settings.
 3. Make sure the Off button is greyed out under Start Settings, if not press it.
 4. Choose your Start Lane value.
-5. Press Reset under Bot Simulation to place the YetiBorg into the correct lane.
+5. Press Reset under Bot Simulation to place the MonsterBorg into the correct lane.
 6. Run the SimulationFull.py script on the Raspberry Pi and wait until it has printed "WaitForGo()".
-   After this it will start printing FPS readings on the default settings, they should be ~ 5.0.
+   After this it will start printing FPS readings on the default settings, they should be ~ 30.0.
+   You will probably want to wait for about 10 seconds at this point for the script to be ready.
 7. Press the Green button under StartSettings.
-   The LED on the YetiBorg diagram should turn on, if not it failed to see the lights.
    The script should print "Lights: 1 - Green".
 8. Press the Red button under StartSettings.
    The script should print "Lights: 2 - Red".
 9. Press the Green button under StartSettings again.
-   The LED on the YetiBorg diagram should turn off, if not it failed to see the lights.
    The script should print "Lights: 3 - Green".
    This will be followed by "Lights: GO".
-   The YetiBorg will begin the race at this point.
+   The MonsterBorg will begin the race at this point.
 10. Finally press the Off button under StartSettings as soon as possible.
     With the green lights still on the script can get confused and reduce the green level in the image too much.
 To start a new run:
